@@ -370,9 +370,10 @@ func nukeComments(root ast.Node) {
 		return
 	}
 	ast.Inspect(root, func(n ast.Node) bool {
-		if n == nil {
+		if isNil(n) {
 			return false
 		}
+
 		switch n := n.(type) {
 		case *ast.CommentGroup:
 			n.List = nil
