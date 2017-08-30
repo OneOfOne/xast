@@ -59,7 +59,8 @@ func (n *Node) Break() *Node {
 	return n
 }
 
-func (n *Node) shouldBreak() bool {
+// Canceled returns true if n is nil or Break/Delete got called.
+func (n *Node) Canceled() bool {
 	return n == nil || n.skip || n.delete || n.n == nil
 }
 
@@ -94,7 +95,7 @@ func WalkNode(node *Node, fn WalkFunc) *Node {
 		return node
 	}
 
-	if node = fn(node); node.shouldBreak() {
+	if node = fn(node); node.Canceled() {
 		return node
 	}
 
