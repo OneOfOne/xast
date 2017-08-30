@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/printer"
 	"go/token"
+	"strings"
 
 	"github.com/OneOfOne/xast"
 )
@@ -45,12 +46,14 @@ func GoodBoy() {
 		case *ast.TypeSpec:
 			if x.Name.Name == "Foo" {
 				x.Name.Name = "Bar"
+				// remove Foo's comment.
+				n.Parent().Node().(*ast.GenDecl).Doc.List = nil
 			}
 		case *ast.CommentGroup:
-			if _, ok := n.Parent().Node().(*ast.GenDecl); ok {
-				x.List = nil
-				return n.Break() // won't delete the node but Walk won't go down its children list.
+			if strings.Contains(x.Text(), "NotFoo") {
+				x.List[0].Text = "// NotFoo got pwned."
 			}
+			return n.Break() // won't delete the node but Walk won't go down its children list.
 		case *ast.FuncDecl:
 			switch x.Name.Name {
 			case "DeleteMe", "DeleteMeToo":
@@ -71,6 +74,7 @@ func GoodBoy() {
 	//
 	// type Bar struct{}
 	//
+	// // NotFoo got pwned.
 	// type NotFoo struct{}
 	//
 	// func GoodBoy() {
