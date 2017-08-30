@@ -6,6 +6,11 @@ import (
 	"reflect"
 )
 
+// NewNode returns a new node with the givent parent and ast.Node.
+func NewNode(parent *Node, cur ast.Node) *Node {
+	return &Node{p: parent, n: cur}
+}
+
 // Node holds the current ast.Node and a parent *Node.
 type Node struct {
 	p    *Node
