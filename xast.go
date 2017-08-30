@@ -13,9 +13,10 @@ func NewNode(parent *Node, cur ast.Node) *Node {
 
 // Node holds the current ast.Node and a parent *Node.
 type Node struct {
-	p    *Node
-	n    ast.Node
-	skip bool
+	p      *Node
+	n      ast.Node
+	delete bool
+	skip   bool
 }
 
 // Parent returns Parent Node.
@@ -45,7 +46,7 @@ func (n *Node) SetNode(nn ast.Node) *Node {
 // Delete marks the node as nil and returns it, making Walk delete it from its parent.
 func (n *Node) Delete() *Node {
 	if n != nil {
-		n.n = nil
+		n.delete = true
 	}
 	return n
 }
@@ -59,12 +60,12 @@ func (n *Node) Break() *Node {
 }
 
 func (n *Node) shouldBreak() bool {
-	return n == nil || n.skip || n.n == nil
+	return n == nil || n.skip || n.delete || n.n == nil
 }
 
 func (n *Node) assign(dst interface{}) (assigned bool) {
 	rv := reflect.ValueOf(dst).Elem()
-	if assigned = n != nil && n.n != nil; assigned {
+	if assigned = n != nil && !n.delete && n.n != nil; assigned {
 		rv.Set(reflect.ValueOf(n.n))
 	} else {
 		rv.Set(reflect.Zero(rv.Type()))
@@ -364,6 +365,9 @@ func WalkNode(node *Node, fn WalkFunc) *Node {
 }
 
 func nukeComments(root ast.Node) {
+	if root == nil {
+		return
+	}
 	ast.Inspect(root, func(n ast.Node) bool {
 		if n == nil {
 			return false
@@ -382,11 +386,11 @@ func nukeComments(root ast.Node) {
 
 func walkIdentList(node *Node, list []*ast.Ident, fn WalkFunc) (out []*ast.Ident) {
 	out = list[:0]
-	for _, x := range list {
+	for i, x := range list {
 		if WalkNode(&Node{p: node, n: x}, fn).assign(&x) {
 			out = append(out, x)
 		} else {
-			nukeComments(x)
+			nukeComments(list[i])
 		}
 	}
 	return
@@ -394,11 +398,11 @@ func walkIdentList(node *Node, list []*ast.Ident, fn WalkFunc) (out []*ast.Ident
 
 func walkExprList(node *Node, list []ast.Expr, fn WalkFunc) (out []ast.Expr) {
 	out = list[:0]
-	for _, x := range list {
+	for i, x := range list {
 		if WalkNode(&Node{p: node, n: x}, fn).assign(&x) {
 			out = append(out, x)
 		} else {
-			nukeComments(x)
+			nukeComments(list[i])
 		}
 	}
 	return
@@ -406,11 +410,11 @@ func walkExprList(node *Node, list []ast.Expr, fn WalkFunc) (out []ast.Expr) {
 
 func walkStmtList(node *Node, list []ast.Stmt, fn WalkFunc) (out []ast.Stmt) {
 	out = list[:0]
-	for _, x := range list {
+	for i, x := range list {
 		if WalkNode(&Node{p: node, n: x}, fn).assign(&x) {
 			out = append(out, x)
 		} else {
-			nukeComments(x)
+			nukeComments(list[i])
 		}
 	}
 	return
@@ -418,11 +422,11 @@ func walkStmtList(node *Node, list []ast.Stmt, fn WalkFunc) (out []ast.Stmt) {
 
 func walkDeclList(node *Node, list []ast.Decl, fn WalkFunc) (out []ast.Decl) {
 	out = list[:0]
-	for _, x := range list {
+	for i, x := range list {
 		if WalkNode(&Node{p: node, n: x}, fn).assign(&x) {
 			out = append(out, x)
 		} else {
-			nukeComments(x)
+			nukeComments(list[i])
 		}
 	}
 	return
@@ -430,11 +434,11 @@ func walkDeclList(node *Node, list []ast.Decl, fn WalkFunc) (out []ast.Decl) {
 
 func walkSpecList(node *Node, list []ast.Spec, fn WalkFunc) (out []ast.Spec) {
 	out = list[:0]
-	for _, x := range list {
+	for i, x := range list {
 		if WalkNode(&Node{p: node, n: x}, fn).assign(&x) {
 			out = append(out, x)
 		} else {
-			nukeComments(x)
+			nukeComments(list[i])
 		}
 	}
 

@@ -12,13 +12,26 @@ import (
 )
 
 func ExampleWalk() {
-	src := `package main
+	src := `
+package main
 
 // Foo is a foo!
 type Foo struct{}
 
 // NotFoo is not a foo!
 type NotFoo struct{}
+
+// DeleteMe needs to be deleted with this comment.
+func DeleteMe() {}
+
+// DeleteMeToo says hi.
+func DeleteMeToo() {}
+
+// GoodBoy is a good boy, yes he is!
+func GoodBoy() {
+	var nf NotFoo
+	_ = nf
+}
 `
 
 	fset := token.NewFileSet()
@@ -34,14 +47,17 @@ type NotFoo struct{}
 				x.Name.Name = "Bar"
 			}
 		case *ast.CommentGroup:
-			// check n.Text()?
-			x.List = nil
-			return n.Break() // don't delete the node but don't go down it's children list.
-
-		// or if you want to remove a single comment out of a group
-		case *ast.Comment: // won't ever get here since we return n.Break() from case *ast.CommentGroup.
-			return n.Delete() // delete this node
-
+			if _, ok := n.Parent().Node().(*ast.GenDecl); ok {
+				x.List = nil
+				return n.Break() // won't delete the node but Walk won't go down its children list.
+			}
+		case *ast.FuncDecl:
+			switch x.Name.Name {
+			case "DeleteMe", "DeleteMeToo":
+				return n.Delete()
+			case "GoodBoy":
+				x.Doc.List = nil // remove the goodboy's comment :-/
+			}
 		}
 
 		return n
@@ -56,4 +72,9 @@ type NotFoo struct{}
 	// type Bar struct{}
 	//
 	// type NotFoo struct{}
+	//
+	// func GoodBoy() {
+	// 	var nf NotFoo
+	// 	_ = nf
+	// }
 }
