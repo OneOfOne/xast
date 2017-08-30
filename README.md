@@ -4,6 +4,10 @@ xast provides `Walk()/WalkNode()` functions, similar to [`astrewrite.Walk`](http
 [astrewrite](https://github.com/fatih/astrewrite) package. The main difference is that the passed walk function can also
 check a node's parent.
 
+Also deleting a node will automatically remove any assocociated comments with it.
+
+Note that this is similar to https://go-review.googlesource.com/c/go/+/55790 but the API itself is a lot simpler.
+
 # Example
 
 ```go
