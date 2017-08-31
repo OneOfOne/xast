@@ -127,11 +127,11 @@ func WalkNode(node *Node, fn WalkFunc) *Node {
 			break
 		}
 		out := n.List[:0]
-		for _, f := range n.List {
+		for i, f := range n.List {
 			if WalkNode(&Node{p: node, n: f}, fn).assign(&f) {
 				out = append(out, f)
 			} else {
-				nukeComments(f)
+				nukeComments(n.List[i])
 			}
 		}
 		if n.List = out; len(n.List) == 0 {
