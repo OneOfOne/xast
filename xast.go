@@ -6,7 +6,7 @@ import (
 	"reflect"
 )
 
-// NewNode returns a new node with the givent parent and ast.Node.
+// NewNode returns a new node with the given parent and ast.Node.
 func NewNode(parent *Node, cur ast.Node) *Node {
 	return &Node{p: parent, n: cur}
 }
